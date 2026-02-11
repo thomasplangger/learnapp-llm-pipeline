@@ -1,142 +1,113 @@
-# LearnApp Demo – Learning Objective Segmentation Platform
+# LearnApp Demo
 
-This repository contains a FastAPI backend and a React frontend for building AI-assisted learning courses from PDFs. The pipeline supports PDF ingestion, chunking, metadata enrichment, learning objective (LO) generation, and lesson creation.
+AI-assisted learning platform that transforms PDF content into structured courses with learning objectives, lessons, and progress tracking.
 
----
+This project includes:
+- A `FastAPI` backend for PDF processing, chunking, objective generation, and lesson workflows
+- A `React` frontend for uploading documents, building courses, and navigating generated learning content
+- Support for both `OpenAI` and local heuristic modes
 
-## Repository Structure
+## Why This Project
 
-```
+The core goal is to reduce manual course-authoring effort by turning raw source material into usable educational units.  
+From an engineering perspective, the focus was on:
+- Building an end-to-end content pipeline (upload -> parse -> chunk -> enrich -> structure)
+- Designing APIs that support both automated and manual refinement workflows
+- Keeping AI features optional via provider abstraction (`openai` vs `heuristic`)
+
+## Core Features
+
+- Multi-PDF course creation
+- Learning objective grouping from chunk embeddings
+- Lesson generation and lesson navigation UI
+- Debug/stepwise workflow for inspecting pipeline stages
+- Progress tracking and autotest utilities for evaluation experiments
+
+## Tech Stack
+
+- Backend: `FastAPI`, `Pydantic`, `MongoDB`
+- Frontend: `React`, `React Router`, `Axios`, `TailwindCSS`
+- AI: OpenAI API (optional) + local heuristic fallback
+
+## Project Structure
+
+```text
 .
-├── backend/                          # FastAPI backend
-│   ├── main.py                       # API entrypoint (uvicorn main:app)
-│   ├── requirements.txt              # Backend dependencies
-│   ├── generate_bench_texts_gui.py   # GUI tool to create test corpora
+├── backend/
+│   ├── main.py
+│   ├── requirements.txt
 │   ├── app/
-│   │   ├── routers/                  # API routes (pdf, course, chunks, objectives, lesson, progress, autotest)
-│   │   ├── providers/                # AI providers (OpenAI, heuristic)
-│   │   ├── services/                 # Chunking and pipeline services
-│   │   ├── utils/                    # PDF processing, metadata helpers
-│   │   ├── db.py                     # MongoDB setup
-│   │   ├── models.py                 # Pydantic models
-│   │   └── schemas.py                # API request/response schemas
-│   ├── generated/                    # Not in repo: create via generate_bench_texts_gui.py
-│   ├── testdata/                     # Not in repo: autotest outputs/caches
-│   └── Tests/                        # Offline analysis scripts (A–E)
-├── frontend/                         # React frontend
-│   ├── package.json                  # Frontend dependencies
+│   │   ├── routers/
+│   │   ├── providers/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   ├── db.py
+│   │   ├── models.py
+│   │   └── schemas.py
+│   └── Tests/
+├── frontend/
+│   ├── package.json
 │   ├── public/
-│   └── src/components/               # UI pages and components
-└── requirements.txt                  # Root Python deps (if used)
+│   └── src/
+└── README.md
 ```
 
----
+## Local Setup
 
-## Setup Guide
+### Prerequisites
 
-### 1) Prerequisites
+- Python `3.10+`
+- Node.js `18+`
+- MongoDB (local or hosted)
 
-- Python 3.10+ and pip
-- Node.js 18+ and npm or yarn
-- MongoDB instance (local or cloud)
-- OpenAI API key if you want LLM features
+### 1) Backend
 
-### 2) Environment Variables
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+```
 
-Create two .env files:
-
-Root .env (optional): for shared variables if you use custom scripts.
-
-backend/.env (required):
+Create `backend/.env`:
 
 ```env
 MONGO_URL=mongodb://localhost:27017
 DB_NAME=learnapp
-OPENAI_API_KEY=sk-...      # optional, enables LLM flows
-AI_PROVIDER=openai         # or "heuristic" to stay fully local
-CHUNK_DEBUG_DIR=debug      # optional, stores chunking traces
+AI_PROVIDER=heuristic
+# OPENAI_API_KEY=sk-...       # set when using OpenAI provider
 ```
 
-Frontend env (optional): frontend/.env with REACT_APP_BACKEND_URL if your backend is not on http://localhost:8001.
+Backend health endpoint:
+- `http://localhost:8001/api/health`
 
----
-
-### 3) Backend Setup
-
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate           # Windows: venv\Scripts\activate
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-Run the API:
-
-```bash
-cd backend
-source venv/bin/activate
-uvicorn main:app --host 0.0.0.0 --port 8001 --reload
-```
-
-Health check: http://localhost:8001/api/health
-
----
-
-### 4) Frontend Setup
+### 2) Frontend
 
 ```bash
 cd frontend
-npm install        # or: yarn install
-npm start          # or: yarn start
+npm install
+npm start
 ```
 
-The dev server runs on http://localhost:3000.
+Frontend runs at:
+- `http://localhost:3000`
 
----
+## API Modules
 
-## Typical Workflow
+- `pdf.py`: PDF upload and course outline bootstrap
+- `chunks.py`: chunking and metadata enrichment
+- `objectives.py`: learning objective grouping and metadata
+- `course.py`: course-level orchestration
+- `lesson.py`: lesson CRUD and grading flows
+- `progress.py`: learner progress tracking
+- `autotest.py`: synthetic and benchmark-oriented test endpoints
 
-1) Upload PDFs in the UI.
-2) Create a course, then choose Auto or Debug mode.
-3) Auto mode runs:
-   - Chunking
-   - Chunk metadata
-   - Learning objective generation (LLM default)
-4) Debug mode lets you run each step manually.
-5) Edit courses, LOs, and chunks in the Course Data page.
+## Portfolio Notes
 
----
-
-## API Routers (backend/app/routers)
-
-| Router | Purpose |
-| --- | --- |
-| pdf.py | PDF upload, outline + lesson bootstrap |
-| chunks.py | Chunking + metadata enrichment |
-| lesson.py | Lesson CRUD and answer grading |
-| objectives.py | LO grouping and editing |
-| course.py | Course fetch and LO → lesson creation |
-| progress.py | User progress tracking |
-| autotest.py | Synthetic testing tools |
-
----
-
-## Important Notes
-
-- Autotest requires `backend/testdata` to exist. Create the folder before running any autotest runs.
-- Autotest source data lives in `backend/generated`. Use `backend/generate_bench_texts_gui.py` to create it.
-- LLM features require `OPENAI_API_KEY` and `AI_PROVIDER=openai`. For local-only behavior, set `AI_PROVIDER=heuristic`.
-- If chunking outputs look off, enable `CHUNK_DEBUG_DIR` and inspect `backend/debug`.
-
----
-
-## Author and Maintainer
-
-Thomas Plangger BSc — Master Thesis @ TU Graz
-Supervised by Priv.-Doz. Dipl.-Ing. Dr.techn. Martin Ebner
-Scientific Advisors: Benedikt Brünner and Philipp Leitner
+This repository is part of my educational AI engineering work and research-driven development.  
+It demonstrates full-stack development, applied NLP/LLM integration, data pipeline design, and API-first system architecture.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+MIT License. See `LICENSE`.
