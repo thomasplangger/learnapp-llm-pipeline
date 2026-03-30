@@ -73,10 +73,6 @@ Key aspects:
 
 ### Course Overview
 
-![Course Overview](./docs/screenshots/CourseView.png)
-
-### Lessons
-
 ![Learning Objective Editing](./docs/screenshots/LessonView.png)
 
 ### Chunks and Learning Objectives
