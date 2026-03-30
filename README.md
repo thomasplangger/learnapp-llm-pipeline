@@ -144,19 +144,4 @@ Core research areas demonstrated:
 
 ## License
 
-MIT
-```
-
----
-
-**How to add the images:**
-
-Create a folder in your repo root called `docs/screenshots/` and drop your PNG files in there:
-```
-your-repo/
-└── docs/
-    └── screenshots/
-        ├── LandingPage.png
-        ├── CourseView.png
-        ├── LO_Editing.png
-        └── LessonView.png
+MIT License
