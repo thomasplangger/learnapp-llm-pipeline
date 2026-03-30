@@ -1,136 +1,100 @@
-# LearnApp – LLM-Based Course Generation & Evaluation Platform
+# LearnApp — AI-Powered Course Generation Platform
 
-End-to-end AI-assisted learning platform that transforms raw educational PDFs into structured courses consisting of semantically coherent content chunks, learning objectives, and lessons.
+> **MSc Thesis Project · TU Graz · Full-Stack AI/NLP System**
 
-Developed as part of my MSc thesis in Computer Science (TU Graz).
-
----
-
-## Overview
-
-LearnApp was built to reduce manual course-authoring effort by converting unstructured educational documents into usable learning units.
-
-The system focuses on three main research and engineering components:
-
-1. **LLM-Based Semantic Chunking**
-2. **Learning Objective Generation & Grouping**
-3. **Autotest & Evaluation Framework**
-
-Together, these form a modular pipeline that combines applied NLP/LLM integration with full-stack system design.
+An end-to-end platform that transforms raw educational PDFs into structured, interactive courses — using LLM-driven semantic chunking, learning objective induction, and automated evaluation. Built as part of my Master's thesis in Computer Science.
 
 ---
 
-## 1) LLM-Based Semantic Chunking
+## What It Does
 
-The core challenge addressed in this project is splitting long educational documents into semantically coherent segments.
+LearnApp eliminates manual course-authoring effort. Upload a PDF, and the system automatically:
 
-Instead of naive fixed-length splitting, the system:
-- Uses LLM-driven topic-awareness
-- Preserves conceptual boundaries
-- Produces meaningful units suitable for downstream processing
-
-This component forms the backbone of the entire pipeline.
+1. **Segments** the document into semantically coherent content chunks
+2. **Groups** chunks into thematic learning objectives
+3. **Generates** structured lessons with quizzes and questions
+4. **Evaluates** output quality through an automated benchmarking framework
 
 ---
 
-## 2) Learning Objective Generation & Grouping
+## Key Technical Contributions
 
-After chunking, the system:
+### 🔷 LLM-Based Semantic Chunking
+Rather than naive fixed-length splitting, the system uses topic-aware LLM prompting to identify conceptual boundaries within documents. PDFs are first converted to structured JSON (via Docling/PyMuPDF), then segmented by an LLM that reasons about topic continuity — producing chunks that preserve meaning across section boundaries.
 
-- Generates learning objectives from chunk content
-- Groups chunks based on semantic similarity and topic signals
-- Builds course structures around these objectives
+### 🔷 Learning Objective Induction & Grouping
+Chunks are grouped into thematic learning objectives using two interchangeable strategies:
+- **OpenAI provider** — LLM uses chunk titles, summaries, and keywords to propose and describe groups
+- **Heuristic provider** — Embedding-based clustering (k-means with √N heuristic) for offline/cost-free use
 
-The architecture supports:
-- OpenAI-based generation
-- Local heuristic fallback mode
-- Manual refinement workflows via the UI
+Both paths generate structured LO metadata: title, summary, and bullet-point objectives. Instructors can manually refine, merge, split, and reorder via the UI.
 
-This allows both automated and guided course construction.
-
----
-
-## 3) Autotest & Evaluation Framework
-
-To move beyond “it looks good”, the system includes a dedicated evaluation layer.
-
-Key features:
-- Synthetic test corpus generation
-- Automated benchmarking endpoints
-- Repeatable test runs
-- Validation of chunk boundaries and grouping behavior
-- Support for experiment-style analysis
-
-This enables systematic validation of LLM-driven outputs rather than purely qualitative inspection.
-
----
-
-## System Architecture
-
-PDF Upload  
-→ Text Extraction  
-→ Semantic Chunking  
-→ Metadata Enrichment  
-→ Learning Objective Generation & Grouping  
-→ Lesson Construction  
-→ MongoDB Storage  
-→ React-Based Course Interface  
-
-The backend exposes modular API routes that allow:
-- Fully automated execution
-- Stepwise debug workflows for inspecting intermediate pipeline states
-
----
-
-## Core Features
-
-- Multi-document course creation
-- Topic-aware semantic segmentation
-- Learning objective grouping from chunk representations
-- Modular AI provider abstraction (`openai` vs `heuristic`)
-- Lesson navigation UI
-- Progress tracking
-- Autotest & benchmark endpoints
+### 🔷 Autotest & Evaluation Framework
+A fully automated benchmarking layer for systematic, repeatable evaluation of LLM pipeline outputs:
+- Generates synthetic multi-topic test PDFs from a text pool
+- Runs configurable test suites (variable PDF count, page ranges, chunking configs)
+- Produces CSV reports, JSON artefacts, and visualizations
+- Enables experiment-style analysis of chunking quality and LO grouping accuracy
 
 ---
 
 ## Tech Stack
 
-### Backend
-- FastAPI
-- Pydantic
-- MongoDB
-- OpenAI API (optional)
-- Modular provider abstraction
-
-### Frontend
-- React
-- React Router
-- Axios
-- TailwindCSS
+| Layer | Technologies |
+|---|---|
+| **Backend** | FastAPI, Pydantic, Python 3.10+ |
+| **AI / NLP** | OpenAI API, sentence-transformers, Docling, PyMuPDF, pdfminer |
+| **Database** | MongoDB + GridFS |
+| **Frontend** | React, React Router, Axios, TailwindCSS |
+| **Evaluation** | Custom autotest framework, CSV/JSON/plot outputs |
 
 ---
 
-## Repository Structure
+## System Architecture
+```
+PDF Upload → Text Extraction → Markdown Conversion → Structured JSON
+    → Semantic Chunking → Metadata Enrichment
+    → LO Grouping (Embedding or LLM)
+    → Lesson & Quiz Generation
+    → MongoDB Storage
+    → React Course Interface
+```
 
+The FastAPI backend exposes modular API routes supporting both **fully automated** pipeline execution and **stepwise debug modes** for inspecting intermediate states.
+
+---
+
+## Screenshots
+
+![Landing Page](docs/screenshots/LandingPage.png)
+*Course dashboard — browse and manage all courses*
+
+![Course View](docs/screenshots/CourseView.png)
+*Learning objectives overview with progress tracking*
+
+![LO Editing](docs/screenshots/LO_Editing.png)
+*Manual LO refinement — edit title, summary, and objectives inline*
+
+![Lesson View](docs/screenshots/LessonView.png)
+*Lesson navigation with inline PDF source preview*
+
+---
+
+## Project Structure
 ```
 .
 ├── backend/
 │   ├── main.py
-│   ├── requirements.txt
 │   ├── app/
-│   │   ├── routers/
-│   │   ├── providers/
-│   │   ├── services/
+│   │   ├── routers/         # API route definitions
+│   │   ├── providers/       # OpenAI & heuristic LO providers
+│   │   ├── services/        # Chunking, LO, lesson generation logic
 │   │   ├── utils/
-│   │   ├── db.py
 │   │   ├── models.py
 │   │   └── schemas.py
-│   └── Tests/
-├── frontend/
-│   ├── package.json
-│   └── src/
-└── README.md
+│   └── Tests/               # Autotest & benchmark suite
+└── frontend/
+    └── src/
 ```
 
 ---
@@ -138,66 +102,61 @@ The backend exposes modular API routes that allow:
 ## Local Setup
 
 ### Prerequisites
-
-- Python 3.10+
-- Node.js 18+
-- MongoDB (local or hosted)
-
----
+- Python 3.10+, Node.js 18+, MongoDB (local or hosted)
 
 ### Backend
-
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
 Create `backend/.env`:
-
 ```env
 MONGO_URL=mongodb://localhost:27017
 DB_NAME=learnapp
-AI_PROVIDER=heuristic
-# OPENAI_API_KEY=sk-...    # required if using OpenAI provider
+AI_PROVIDER=heuristic          # or 'openai'
+# OPENAI_API_KEY=sk-...        # required for OpenAI provider
 ```
-
-Health endpoint:
-http://localhost:8001/api/health
-
----
 
 ### Frontend
-
 ```bash
-cd frontend
-npm install
-npm start
+cd frontend && npm install && npm start
 ```
 
-Frontend:
-http://localhost:3000
+- Backend health check: `http://localhost:8001/api/health`
+- Frontend: `http://localhost:3000`
 
 ---
 
 ## Research Context
 
-This repository was developed within the scope of my Master’s thesis:
+**Thesis title:** *"Topic-Aware Semantic Segmentation and Learning Objective Induction from Educational Content using Large Language Models"* — TU Graz, MSc Computer Science
 
-**“Topic-Aware Semantic Segmentation and Learning Objective Induction from Educational Content using Large Language Models.”**
-
-The project demonstrates:
-
-- Applied LLM integration in production-style pipelines
-- Topic-aware document segmentation
-- Embedding-based grouping strategies
-- Evaluation-driven development
-- Full-stack system architecture (API + database + UI)
+Core research areas demonstrated:
+- Applied LLM integration in production-style NLP pipelines
+- Embedding-based document segmentation and grouping
+- Evaluation-driven development methodology
+- Full-stack system design (REST API + document DB + React UI)
 
 ---
 
 ## License
 
-MIT License
+MIT
+```
+
+---
+
+**How to add the images:**
+
+Create a folder in your repo root called `docs/screenshots/` and drop your PNG files in there:
+```
+your-repo/
+└── docs/
+    └── screenshots/
+        ├── LandingPage.png
+        ├── CourseView.png
+        ├── LO_Editing.png
+        └── LessonView.png
